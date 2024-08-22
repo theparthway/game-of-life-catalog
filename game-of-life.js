@@ -1,5 +1,6 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+const prob = 0.5; // probability of the cluster spawning new cell
 
 function setCanvasSize() {
   canvas.width = window.innerWidth;
@@ -10,21 +11,19 @@ function calculateCellSize() {
   return Math.min(canvas.width, canvas.height) / 80;
 }
 
-
-
 function createGrid() {
   return new Array(rows).fill(null).map(() => new Array(cols).fill(0));
 }
 
 function drawGrid() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#151A1B'; // Background color
+  ctx.fillStyle = '#151A1B'; // bg colour
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       if (grid[row][col] === 1) {
-        ctx.fillStyle = '#5CFFD5'; // Cell color
+        ctx.fillStyle = '#5CFFD5'; // cell colour
         ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
       }
     }
@@ -38,11 +37,14 @@ function updateGrid() {
     for (let col = 0; col < cols; col++) {
       const neighbors = getLiveNeighbors(row, col);
 
+      // each live cell with 1 or more than 3 neighbours dies
+      // otherwise it stays alive
       if (grid[row][col] === 1) {
         if (neighbors === 2 || neighbors === 3) {
           nextGrid[row][col] = 1;
         }
       } else {
+        // each dead cell with 3 neighbours comes alive
         if (neighbors === 3) {
           nextGrid[row][col] = 1;
         }
@@ -73,21 +75,21 @@ function presetDesign() {
   const midRow = Math.floor(rows / 2);
   const midCol = Math.floor(cols / 2);
 
-  // horizontal
+  // horizontal line
   for (let r = -1; r < 2; r++) {
     for (let c = -12; c < 12; c++) {
       grid[midRow + r][midCol + c] = 1;
     }
   }
 
-  // vertical
+  // vertical line
   for (let r = -13; r < 0; r++) {
     for (let c = -2; c < 2; c++) {
       grid[midRow + r][midCol + c] = 1;
     }
   }
 
-  const coords = [
+  const initialCoords = [
     [-2, -3], [-2, -4], [-2, -5],
     [-3, -3], [-3, -4], [-3, -5], [-3, -6],
     [-4, -3], [-4, -4], [-4, -5], [-4, -6], [-4, -7],
@@ -109,8 +111,8 @@ function presetDesign() {
     [-10, 7], [-10, 8]
   ];
 
-  coords.forEach(element => {
-    grid[midRow + element[0]][midCol + element[1]] = 1;
+  initialCoords.forEach(element => {
+    grid[midRow + element[0]][midCol + element[1]] = 1; // render using coords
   });
 }
 
@@ -119,13 +121,13 @@ function addCluster(x, y) {
   const row = Math.floor(y / cellSize);
 
   if (row >= 0 && row < rows && col >= 0 && col < cols) {
-    // Generate a random 5x5 cluster
+    // generate a random 5x5 cluster
     for (let i = -2; i <= 2; i++) {
       for (let j = -2; j <= 2; j++) {
         const newRow = row + i;
         const newCol = col + j;
         if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
-          grid[newRow][newCol] = Math.random() > 0.5 ? 1 : 0; // Randomly set cell state
+          grid[newRow][newCol] = Math.random() > prob ? 1 : 0; // render cluster cells according to probability
         }
       }
     }
@@ -144,8 +146,8 @@ function handleResize() {
   cellSize = calculateCellSize();
   rows = Math.floor(canvas.height / cellSize);
   cols = Math.floor(canvas.width / cellSize);
-  grid = createGrid(); // Recreate grid for new dimensions
-  presetDesign(); // Apply preset design to the new grid
+  grid = createGrid();
+  presetDesign(); // for new grid
   drawGrid();
 }
 
@@ -157,7 +159,6 @@ let grid = createGrid();
 
 window.addEventListener('resize', handleResize);
 
-// Initial setup
 presetDesign();
 drawGrid();
-setInterval(updateGrid, 10);
+setInterval(updateGrid, 100);
