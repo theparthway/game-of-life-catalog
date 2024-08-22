@@ -1,6 +1,6 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const prob = 0.5; // probability of the cluster spawning new cell
+const prob = 0.5; // cluster density
 
 function setCanvasSize() {
   canvas.width = window.innerWidth;
@@ -127,7 +127,7 @@ function addCluster(x, y) {
         const newRow = row + i;
         const newCol = col + j;
         if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
-          grid[newRow][newCol] = Math.random() > prob ? 1 : 0; // render cluster cells according to probability
+          grid[newRow][newCol] = Math.random() < prob ? 1 : 0; // render cluster cells according to probability
         }
       }
     }
