@@ -1,13 +1,16 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+function setCanvasSize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
 
-const cellSize = 20;
-const rows = Math.floor(canvas.height / cellSize);
-const cols = Math.floor(canvas.width / cellSize);
-let grid = createGrid();
+function calculateCellSize() {
+  return Math.min(canvas.width, canvas.height) / 80;
+}
+
+
 
 function createGrid() {
   return new Array(rows).fill(null).map(() => new Array(cols).fill(0));
@@ -67,73 +70,49 @@ function getLiveNeighbors(row, col) {
 }
 
 function presetDesign() {
-  const startRow = Math.floor(rows / 2); // Adjusted to position "Catalog" in the upper half
-  const startCol = Math.floor(cols / 3); // Adjusted for left alignment
-  
-  const letters = {
-    C: [
-      [1, 1, 1],
-      [1, 0, 0],
-      [1, 0, 0],
-      [1, 1, 1]
-    ],
-    A: [
-      [0, 1, 0],
-      [1, 0, 1],
-      [1, 1, 1],
-      [1, 0, 1]
-    ],
-    T: [
-      [1, 1, 1],
-      [0, 1, 0],
-      [0, 1, 0],
-      [0, 1, 0]
-    ],
-    A2: [
-      [0, 1, 0],
-      [1, 0, 1],
-      [1, 1, 1],
-      [1, 0, 1]
-    ],
-    L: [
-      [1, 0, 0],
-      [1, 0, 0],
-      [1, 0, 0],
-      [1, 1, 1]
-    ],
-    O: [
-      [1, 1, 1],
-      [1, 0, 1],
-      [1, 0, 1],
-      [1, 1, 1]
-    ],
-    G: [
-      [1, 1, 1],
-      [1, 0, 0],
-      [1, 0, 1],
-      [1, 1, 1]
-    ]
-  };
-  
-  // Function to draw a letter at a specific position
-  function drawLetter(letter, row, col) {
-    for (let r = 0; r < letter.length; r++) {
-      for (let c = 0; c < letter[r].length; c++) {
-        grid[row + r][col + c] = letter[r][c];
-      }
+  const midRow = Math.floor(rows / 2);
+  const midCol = Math.floor(cols / 2);
+
+  // horizontal
+  for (let r = -1; r < 2; r++) {
+    for (let c = -12; c < 12; c++) {
+      grid[midRow + r][midCol + c] = 1;
     }
   }
-  
-  // Draw the letters "Catalog"
-  drawLetter(letters.C, startRow, startCol);
-  drawLetter(letters.A, startRow, startCol + 4);
-  drawLetter(letters.T, startRow, startCol + 8);
-  drawLetter(letters.A2, startRow, startCol + 12);
-  drawLetter(letters.L, startRow, startCol + 16);
-  drawLetter(letters.O, startRow, startCol + 20);
-  drawLetter(letters.G, startRow, startCol + 24);
-}
 
+  // vertical
+  for (let r = -13; r < 0; r++) {
+    for (let c = -2; c < 2; c++) {
+      grid[midRow + r][midCol + c] = 1;
+    }
+  }
+
+  const coords = [
+    [-2, -3], [-2, -4], [-2, -5],
+    [-3, -3], [-3, -4], [-3, -5], [-3, -6],
+    [-4, -3], [-4, -4], [-4, -5], [-4, -6], [-4, -7],
+    [-5, -3], [-5, -4], [-5, -5], [-5, -6], [-5, -7], [-5, -8],
+    [-6, -4], [-6, -5], [-6, -6], [-6, -7], [-6, -8], [-6, -9],
+    [-7, -5], [-7, -6], [-7, -7], [-7, -8], [-7, -9], [-7, -10],
+    [-8, -6], [-8, -7], [-8, -8], [-8, -9], [-8, -10], [-8, -11],
+    [-9, -7], [-9, -8], [-9, -9], [-9, -10],
+    [-10, -8], [-10, -9],
+
+    [-2, 2], [-2, 3], [-2, 4],
+    [-3, 2], [-3, 3], [-3, 4], [-3, 5],
+    [-4, 2], [-4, 3], [-4, 4], [-4, 5], [-4, 6],
+    [-5, 2], [-5, 3], [-5, 4], [-5, 5], [-5, 6], [-5, 7],
+    [-6, 3], [-6, 4], [-6, 5], [-6, 6], [-6, 7], [-6, 8],
+    [-7, 4], [-7, 5], [-7, 6], [-7, 7], [-7, 8], [-7, 9],
+    [-8, 5], [-8, 6], [-8, 7], [-8, 8], [-8, 9], [-8, 10],
+    [-9, 6], [-9, 7], [-9, 8], [-9, 9],
+    [-10, 7], [-10, 8]
+  ];
+
+  coords.forEach(element => {
+    grid[midRow + element[0]][midCol + element[1]] = 1;
+  });
+}
 
 function addCluster(x, y) {
   const col = Math.floor(x / cellSize);
@@ -160,6 +139,25 @@ canvas.addEventListener('click', (e) => {
   drawGrid();
 });
 
+function handleResize() {
+  setCanvasSize();
+  cellSize = calculateCellSize();
+  rows = Math.floor(canvas.height / cellSize);
+  cols = Math.floor(canvas.width / cellSize);
+  grid = createGrid(); // Recreate grid for new dimensions
+  presetDesign(); // Apply preset design to the new grid
+  drawGrid();
+}
+
+setCanvasSize();
+let cellSize = calculateCellSize();
+let rows = Math.floor(canvas.height / cellSize);
+let cols = Math.floor(canvas.width / cellSize);
+let grid = createGrid();
+
+window.addEventListener('resize', handleResize);
+
+// Initial setup
 presetDesign();
 drawGrid();
-setInterval(updateGrid, 500);
+setInterval(updateGrid, 10);
